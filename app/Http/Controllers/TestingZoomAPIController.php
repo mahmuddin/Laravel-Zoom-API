@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\ItdpCompanyUser;
+use App\Models\MasterCountry;
+use App\Models\ZoomItdpCompanyUser;
 use App\Models\ZoomRoom;
 use App\Models\ZoomToken;
 use Carbon\Carbon;
@@ -36,9 +38,11 @@ class TestingZoomAPIController extends Controller
                     $local_meeting_data = ZoomRoom::where('meeting_id', $d['id'])->first();
 
                     $array_user_invited = [];
-                    foreach ($local_meeting_data->itdp_company_user as $user_company) {
-                        $array_user_invited[] = $user_company->email;
-                    };
+                    if ($local_meeting_data != null) {
+                        foreach ($local_meeting_data->itdp_company_user as $user_company) {
+                            $array_user_invited[] = $user_company->email;
+                        };
+                    }
 
                     $merge['meetings'][] = array_merge($data['origin_data']['meetings'][$key], [
                         'password' => ($local_meeting_data != '') ? $local_meeting_data->password : '',
@@ -73,6 +77,8 @@ class TestingZoomAPIController extends Controller
 
         return view('index', $data);
     }
+
+   
     // Get access token
     public function get_access_token()
     {
@@ -377,6 +383,7 @@ class TestingZoomAPIController extends Controller
             $data[$key]['no'] = $key + 1;
             $data[$key]['id'] = $d->id;
             $data[$key]['email'] = $d->email;
+            $data[$key]['is_verified'] = $d->pivot->is_verified;
         }
         return response()->json([
             'status' => 200,
@@ -397,6 +404,28 @@ class TestingZoomAPIController extends Controller
             $data[$key]['no'] = $key + 1;
             $data[$key]['id'] = $d->id;
             $data[$key]['email'] = $d->email;
+            $data[$key]['email'] = $d->email;
+            $data[$key]['is_verified'] = $d->pivot->is_verified;
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'ok',
+            'data' => $data
+        ], 200);
+    }
+
+    public function verification(Request $request)
+    {
+        ZoomItdpCompanyUser::where('itdp_company_user_id', $request->user_id)->where('zoom_room_id', $request->zoom_room_id)->update(['is_verified' => $request->zoom_verification]);
+        $dataZoomRoom = ZoomRoom::whereId($request->zoom_room_id)->first();
+        $data = [];
+        foreach ($dataZoomRoom->itdp_company_user as $key => $d) {
+            $data[$key]['zoom_room_id'] = $dataZoomRoom->id;
+            $data[$key]['no'] = $key + 1;
+            $data[$key]['id'] = $d->id;
+            $data[$key]['email'] = $d->email;
+            $data[$key]['is_verified'] = $d->pivot->is_verified;
         }
 
         return response()->json([

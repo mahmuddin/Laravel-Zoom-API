@@ -30,3 +30,4 @@ Route::get('/autocomplete-ajax-user', [TestingZoomAPIController::class, 'dataAja
 Route::post('/add_invitation', [TestingZoomAPIController::class, 'add_invitation']);
 Route::post('/view_invitation', [TestingZoomAPIController::class, 'view_invitation']);
 Route::delete('/delete_invitation', [TestingZoomAPIController::class, 'delete_invitation']);
+Route::post('/verification', [TestingZoomAPIController::class, 'verification']);
